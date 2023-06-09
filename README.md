@@ -23,10 +23,10 @@ This project demonstrates how to create a GPS tracker using the ESP32/ESP8266 mo
 # Connection 
 | **ESP32** | **GPS NEO-6M**   |
 |-------|-------|
-| 3V3   | VCC   |
-| GND   | GND   |
-| RX    | TX    |
-| TX    | RX    |
+| 3V3 | VCC  |
+| GND | GND  |
+| RX  |  TX  |
+| TX  |  RX  |
 
 # LED status on the GPS module
 ⚫ **No blinking** – it is searching for satellites.</br>
