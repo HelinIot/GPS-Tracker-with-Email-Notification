@@ -21,7 +21,7 @@ This project demonstrates how to create a GPS tracker using the ESP32/ESP8266 mo
 6. Press the button to send the current location via email.
 
 # Connection 
-| ESP32 | GPS   |
+| **ESP32** | **GPS NEO-6M**   |
 |-------|-------|
 | 3V3   | VCC   |
 | GND   | GND   |
@@ -29,7 +29,7 @@ This project demonstrates how to create a GPS tracker using the ESP32/ESP8266 mo
 | TX    | RX    |
 
 # LED status on the GPS module
-⚫ No blinking – it is searching for satellites.</br>
-⚫ Blink every 1s – Position Fix is found (the module can see enough satellites).
+⚫ **No blinking** – it is searching for satellites.</br>
+⚫ **Blink every 1s** – Position Fix is found (the module can see enough satellites).
 
 
