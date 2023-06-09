@@ -29,7 +29,7 @@ This project demonstrates how to create a GPS tracker using the ESP32/ESP8266 mo
 | TX  |  RX  |
 
 # LED status on the GPS module
-⚫ **No blinking** – it is searching for satellites.</br>
-⚫ **Blink every 1s** – Position Fix is found (the module can see enough satellites).
+- **No blinking** – it is searching for satellites.</br>
+- **Blink every 1s** – Position Fix is found (the module can see enough satellites).
 
 
