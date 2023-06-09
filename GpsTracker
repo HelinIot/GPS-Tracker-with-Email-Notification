@@ -1,0 +1,163 @@
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <WiFiServer.h>
+#include <WiFiUdp.h>
+#include <Arduino.h>
+#include <ESP_Mail_Client.h>
+#include <TinyGPSPlus.h>
+
+const char* WIFI_SSID = "replace_your_ssid";
+const char* WIFI_PASSWORD = "replace_your_password";
+
+const int buttonPin = 21; // Button pin number
+volatile bool buttonPressed = false; // Variable to store button press status
+String Url_Location = ""; // Variable to store location URL
+
+TinyGPSPlus gps;
+
+// Email settings
+#define SMTP_HOST "smtp.gmail.com"
+#define SMTP_PORT 465
+#define AUTHOR_EMAIL "your_email@gmail.com" // Replace with your email
+#define AUTHOR_PASSWORD "your_email_password" // Replace with your password
+#define RECIPIENT_EMAIL "recipient_email@gmail.com" // Replace with recipient's email
+
+SMTPSession smtp;
+
+void smtpCallback(SMTP_Status status);
+
+void setup() {
+  Serial.begin(115200);
+  Serial2.begin(9600);
+  pinMode(buttonPin, INPUT_PULLUP); // Set button pin as input with internal pull-up resistor
+
+  attachInterrupt(digitalPinToInterrupt(buttonPin), getLocation, FALLING);
+}
+
+void loop() {
+  if (buttonPressed) {
+    buttonPressed = false;
+    if (!Url_Location.isEmpty()) {
+      connectWifi();
+    }
+  }
+}
+
+String createUrlLocation() {
+  if (gps.location.isValid()) {
+    String latitude = String(gps.location.lat(), 6);
+    String longitude = String(gps.location.lng(), 6);
+    return "https://www.google.com/maps/search/?api=1&query=" + latitude + "," + longitude;
+  } else {
+    return "";
+  }
+}
+
+void getLocation() {
+  while (Serial2.available() > 0 && Url_Location.isEmpty()) {
+    if (gps.encode(Serial2.read()) && Url_Location.isEmpty()) {
+      Url_Location = createUrlLocation();
+      Serial.println(Url_Location);
+      buttonPressed = true;
+      return;
+    }
+  }
+
+  if (millis() > 5000 && gps.charsProcessed() < 10) {
+    Serial.println(F("No GPS detected: check wiring."));
+  }
+}
+
+void connectWifi() {
+  Serial.print("Connecting to WiFi...");
+  
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+
+  int connectionTimeout = 10000; // Maximum allowed time for connecting to the network (10 seconds)
+  unsigned long startTime = millis();
+
+  while (WiFi.status() != WL_CONNECTED && millis() - startTime < connectionTimeout) {
+    // Wait for connection
+    delay(100);
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("");
+    Serial.println("WiFi connected.");
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());
+    
+    // Send location by email
+    sendLocationByEmail();
+    
+  } else {
+    Serial.println("");
+    Serial.println("Failed to connect to WiFi.");
+  }
+}
+
+void sendLocationByEmail(){
+  if (!SPIFFS.begin(true)) {
+    Serial.println("An error has occurred while mounting SPIFFS");
+  } else {
+    Serial.println("SPIFFS mounted successfully");
+  }
+  
+  smtp.debug(1);
+
+  smtp.callback(smtpCallback);
+
+  ESP_Mail_Session session;
+
+  session.server.host_name = SMTP_HOST;
+  session.server.port = SMTP_PORT;
+  session.login.email = AUTHOR_EMAIL;
+  session.login.password = AUTHOR_PASSWORD;
+  session.login.user_domain = ""; // mydomain.net
+
+  SMTP_Message message;
+
+  message.sender.name = "ESP Mail";
+  message.sender.email = AUTHOR_EMAIL;
+  message.subject = "ESP Location";
+  message.addRecipient("Recipient", RECIPIENT_EMAIL);
+
+  String htmlMsg = Url_Location;
+  message.html.content = htmlMsg.c_str();
+  message.html.charSet = "utf-8";
+  message.html.transfer_encoding = Content_Transfer_Encoding::enc_qp;
+
+  message.priority = esp_mail_smtp_priority::esp_mail_smtp_priority_normal;
+  message.response.notify = esp_mail_smtp_notify_success | esp_mail_smtp_notify_failure | esp_mail_smtp_notify_delay;
+
+  if (!smtp.connect(&session))
+    return;
+
+  if (!MailClient.sendMail(&smtp, &message, true))
+    Serial.println("Error sending Email, " + smtp.errorReason());
+}
+
+void smtpCallback(SMTP_Status status){
+  Serial.println(status.info());
+
+  if (status.success()){
+    Serial.println("----------------");
+    ESP_MAIL_PRINTF("Message sent success: %d\n", status.completedCount());
+    ESP_MAIL_PRINTF("Message sent failed: %d\n", status.failedCount());
+    Serial.println("----------------\n");
+    struct tm dt;
+
+    for (size_t i = 0; i < smtp.sendingResult.size(); i++){
+      SMTP_Result result = smtp.sendingResult.getItem(i);
+      time_t ts = (time_t)result.timestamp;
+      localtime_r(&ts, &dt);
+
+      ESP_MAIL_PRINTF("Message No: %d\n", i + 1);
+      ESP_MAIL_PRINTF("Status: %s\n", result.completed ? "success" : "failed");
+      ESP_MAIL_PRINTF("Date/Time: %d/%d/%d %d:%d:%d\n", dt.tm_year + 1900, dt.tm_mon + 1, dt.tm_mday, dt.tm_hour, dt.tm_min, dt.tm_sec);
+      ESP_MAIL_PRINTF("Recipient: %s\n", result.recipients);
+      ESP_MAIL_PRINTF("Subject: %s\n", result.subject);
+    }
+    Serial.println("----------------\n");
+  }
+}
