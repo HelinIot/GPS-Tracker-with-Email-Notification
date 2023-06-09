@@ -8,8 +8,11 @@ This project demonstrates how to create a GPS tracker using the ESP32/ESP8266 mo
 
 # Hardware Requirements
 - ESP32 WROOM
+![esp wroom](ESP32 wroom.jpg)
 - GPS NEO-6M
+![gps neo-6m](GPS NEO-6M.jpeg)
 - Button
+![button](button.jfif)
 - wires and breadboard
 
 # Installation
