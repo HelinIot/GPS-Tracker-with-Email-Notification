@@ -7,7 +7,7 @@ This project demonstrates how to create a GPS tracker using the ESP32/ESP8266 mo
 - Sends location via email using the SMTP protocol
 
 # Hardware Requirements
-- ESP32 WROOM module
+- ESP32 WROOM
 - GPS NEO-6M
 - Button
 - wires and breadboard
