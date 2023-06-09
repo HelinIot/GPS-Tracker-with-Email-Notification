@@ -21,7 +21,7 @@ This project demonstrates how to create a GPS tracker using the ESP32/ESP8266 mo
 6. Press the button to send the current location via email.
 
 # Connection 
-| **ESP32** | **GPS NEO-6M**   |
+| **ESP32** | **GPS**   |
 |-------|-------|
 | 3V3 | VCC  |
 | GND | GND  |
