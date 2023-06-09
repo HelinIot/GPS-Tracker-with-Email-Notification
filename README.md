@@ -12,10 +12,8 @@ This project demonstrates how to create a GPS tracker using the ESP32/ESP8266 mo
 
 - GPS NEO-6M
 ![gps neo-6m](gps neo-6m.jpeg)
-
-- Button
 ![button](button.jfif)
-
+- Button
 - wires and breadboard
 
 # Installation
